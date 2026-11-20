@@ -61,3 +61,16 @@ class RentalOut(BaseModel):
     rented_at: datetime
     due_at: datetime | None
     returned_at: datetime | None
+
+
+class GenreStat(BaseModel):
+    genre: str
+    books: int
+    rentals_active: int
+
+
+class PopularBook(BaseModel):
+    book_id: int
+    title: str
+    author: str
+    total_rentals: int
