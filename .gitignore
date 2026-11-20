@@ -1,0 +1,85 @@
+# ------------------ Python ------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# ------------------ Django ------------------
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+*.mo
+
+# ------------------ PostgreSQL (локальные файлы) ------------------
+# (если вы храните дампы БД локально – исключаем)
+*.dump
+*.sql
+*.backup
+pg_hba.conf
+postgresql.confs
+
+# ------------------ Виртуальное окружение ------------------
+.venv/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ------------------ Файлы окружения и секреты ------------------
+.env
+.env.local
+.env.*.local
+*.secret
+config.local.*
+secrets.yaml
+
+# ------------------ Редакторы и IDE ------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.iml
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# ------------------ Тесты и отчёты ------------------
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.pytest_cache/
+*.cover
+.hypothesis/
+.dmypy.json
+dmypy.json
+
+# ------------------ Другое ------------------
+*.pid
+*.seed
+*.pid.lock
+*.db
+*.sqlite3
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+.idea
+.venv
+media
