@@ -50,3 +50,14 @@ class BookOut(BookCreate):
     id: int
     available_copies: int = 0
     created_at: datetime
+
+
+class RentalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    book_id: int
+    user_id: int
+    rented_at: datetime
+    due_at: datetime | None
+    returned_at: datetime | None
