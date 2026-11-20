@@ -11,3 +11,5 @@ pandas
 matplotlib
 pytest
 httpx
+pydantic[email]
+python-multipart
