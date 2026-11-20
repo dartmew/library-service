@@ -19,6 +19,34 @@ class UserOut(BaseModel):
     created_at: datetime
 
 
+class UserUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class BookCreate(BaseModel):
+    title: str = Field(max_length=255)
+    author: str = Field(max_length=255)
+    genre: str = Field(max_length=100)
+    year: int | None = None
+    total_copies: int = Field(default=1, ge=1)
+
+
+class BookUpdate(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    author: str | None = Field(default=None, max_length=255)
+    genre: str | None = Field(default=None, max_length=100)
+    year: int | None = None
+    total_copies: int | None = Field(default=None, ge=1)
+
+
+class BookOut(BookCreate):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    available_copies: int = 0
+    created_at: datetime
