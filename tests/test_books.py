@@ -36,3 +36,7 @@ def test_delete(client, user_token, book):
 
 def test_requires_token(client):
     assert client.get("/books").status_code == 401
+
+
+def test_health(client):
+    assert client.get("/health").json() == {"status": "ok"}

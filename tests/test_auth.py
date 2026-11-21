@@ -35,3 +35,8 @@ def test_register_short_password(client):
         json={"email": "short@test.com", "password": "123", "name": "Краткий"},
     )
     assert resp.status_code == 422
+
+
+def test_me_invalid_token(client):
+    resp = client.get("/auth/me", headers=auth("fake.token.value"))
+    assert resp.status_code == 401

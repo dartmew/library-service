@@ -28,12 +28,22 @@ def _rentals_df(db) -> pd.DataFrame:
 
 
 def popularity_top(db, limit: int = 10) -> list[dict]:
-    df = _rentals_df(db)
-    if df.empty:
+    books = pd.read_sql(
+        select(Book.id.label("book_id"), Book.title, Book.author),
+        db.bind,
+    )
+    if books.empty:
         return []
-    top = df.groupby(["book_id", "title", "author"]).size().reset_index(name="total_rentals")
-    top = top.sort_values("total_rentals", ascending=False).head(limit)
-    return top.to_dict("records")
+    df = _rentals_df(db)
+    counts = (
+        df.groupby("book_id").size().rename("total_rentals").reset_index()
+        if not df.empty
+        else pd.DataFrame(columns=["book_id", "total_rentals"])
+    )
+    out = books.merge(counts, on="book_id", how="left")
+    out["total_rentals"] = out["total_rentals"].fillna(0).astype(int)
+    out = out.sort_values("total_rentals", ascending=False).head(limit)
+    return out.to_dict("records")
 
 
 def stats_by_genre(db) -> list[dict]:
