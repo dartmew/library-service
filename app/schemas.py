@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -74,3 +75,13 @@ class PopularBook(BaseModel):
     title: str
     author: str
     total_rentals: int
+
+
+T = TypeVar("T")
+
+
+class Page(BaseModel, Generic[T]):
+    total: int
+    limit: int
+    offset: int
+    items: list[T]

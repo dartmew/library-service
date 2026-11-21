@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Book, Rental, User
-from ..schemas import RentalOut
+from ..schemas import RentalOut, Page
 from ..security import get_current_user
 
 
@@ -72,22 +72,30 @@ def return_book(rental_id: int, db: Session = Depends(get_db), user: User = Depe
     return rental
 
 
-@router.get("/my", response_model=list[RentalOut])
+@router.get("/my", response_model=Page[RentalOut])
 def my_rentals(
     active: bool | None = Query(None),
     overdue: bool | None = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     stmt = select(Rental).where(Rental.user_id == user.id)
     stmt = _apply_filters(stmt, active, overdue)
-    return db.scalars(stmt.order_by(Rental.rented_at.desc())).all()
+
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    rentals = db.scalars(stmt.order_by(Rental.rented_at.desc()).limit(limit).offset(offset)).all()
+
+    return Page(total=total, limit=limit, offset=offset, items=rentals)
 
 
-@router.get("", response_model=list[RentalOut])
+@router.get("", response_model=Page[RentalOut])
 def all_rentals(
     active: bool | None = Query(None),
     overdue: bool | None = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_user),
 ):
@@ -95,7 +103,11 @@ def all_rentals(
         raise HTTPException(status_code=403, detail="Требуются права администратора")
     stmt = select(Rental)
     stmt = _apply_filters(stmt, active, overdue)
-    return db.scalars(stmt.order_by(Rental.rented_at.desc())).all()
+
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    rentals = db.scalars(stmt.order_by(Rental.rented_at.desc()).limit(limit).offset(offset)).all()
+
+    return Page(total=total, limit=limit, offset=offset, items=rentals)
 
 
 def _apply_filters(stmt, active: bool | None, overdue: bool | None):

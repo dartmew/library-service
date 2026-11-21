@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Book, Rental, User
-from ..schemas import BookCreate, BookOut, BookUpdate
+from ..schemas import BookCreate, BookOut, BookUpdate, Page
 from ..security import get_current_user
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -20,13 +20,29 @@ def _available_copies(db: Session, book: Book) -> int:
     return book.total_copies - active
 
 
+def _to_out_many(db: Session, books: list[Book]) -> list[BookOut]:
+    ids = [b.id for b in books]
+    counts: dict[int, int] = {}
+    if ids:
+        rows = db.execute(
+            select(Rental.book_id, func.count(Rental.id))
+            .where(Rental.book_id.in_(ids), Rental.returned_at.is_(None))
+            .group_by(Rental.book_id)
+        ).all()
+        counts = dict(rows)
+
+    result = []
+    for b in books:
+        out = BookOut.model_validate(b)
+        out.available_copies = b.total_copies - counts.get(b.id, 0)
+        result.append(out)
+    return result
+
 def _to_out(db: Session, book: Book) -> BookOut:
-    out = BookOut.model_validate(book)
-    out.available_copies = _available_copies(db, book)
-    return out
+    return _to_out_many(db, [book])[0]
 
 
-@router.get("", response_model=list[BookOut])
+@router.get("", response_model=Page[BookOut])
 def list_books(
     title: str | None = Query(None, max_length=255),
     author: str | None = Query(None, max_length=255),
@@ -43,8 +59,16 @@ def list_books(
         stmt = stmt.where(Book.author.ilike(f"%{author}%"))
     if genre:
         stmt = stmt.where(Book.genre.ilike(f"%{genre}%"))
+
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     books = db.scalars(stmt.order_by(Book.id).limit(limit).offset(offset)).all()
-    return [_to_out(db, b) for b in books]
+
+    return Page(
+        total=total,
+        limit=limit,
+        offset=offset,
+        items=_to_out_many(db, list(books)),
+    )
 
 
 @router.post("", response_model=BookOut, status_code=201)
