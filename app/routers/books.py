@@ -86,5 +86,18 @@ def delete_book(book_id: int, db: Session = Depends(get_db), user: User = Depend
     book = db.get(Book, book_id)
     if book is None:
         raise HTTPException(status_code=404, detail="Книга не найдена")
+
+    active = db.scalar(
+        select(func.count(Rental.id)).where(
+            Rental.book_id == book_id,
+            Rental.returned_at.is_(None),
+        )
+    )
+    if active:
+        raise HTTPException(
+            status_code=409,
+            detail=f"У книги есть активные аренды ({active}), сначала дождитесь возврата",
+        )
+
     db.delete(book)
     db.commit()
