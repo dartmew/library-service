@@ -4,6 +4,7 @@ from sqlalchemy import update
 
 from app.models import Rental
 from tests.utils import auth, make_book
+from concurrent.futures import ThreadPoolExecutor
 
 
 def test_rent_and_return(client, user_token, book):
@@ -73,3 +74,17 @@ def test_overdue_filter(client, db_session, user_token, admin_token):
 
     client.post(f"/rentals/{rental_id}/return", headers=auth(admin_token))
     assert client.get("/rentals?overdue=true", headers=auth(admin_token)).json()["items"] == []
+
+
+def test_rent_race_last_copy(client, user_token):
+    bk = make_book(client, user_token, title="Гонка", total_copies=1)
+
+    def rent():
+        return client.post(f"/rentals/book/{bk['id']}", headers=auth(user_token))
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(rent), pool.submit(rent)]
+        results = [f.result() for f in futures]
+
+    codes = sorted(r.status_code for r in results)
+    assert codes == [201, 409], f"ожидались 201 и 409, получили {codes}"
