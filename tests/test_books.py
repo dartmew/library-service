@@ -13,7 +13,7 @@ def test_list_with_filter(client, user_token):
     make_book(client, user_token, title="Космос", author="Саган", genre="наука")
     resp = client.get("/books?author=пуш", headers=auth(user_token))
     assert resp.status_code == 200
-    titles = [b["title"] for b in resp.json()]
+    titles = [b["title"] for b in resp.json()["items"]]
     assert titles == ["Евгений Онегин"]
 
 
@@ -21,8 +21,12 @@ def test_filter_by_title_and_genre(client, user_token):
     make_book(client, user_token, title="Тени", genre="детектив")
     make_book(client, user_token, title="Свет", genre="драма")
 
-    assert client.get("/books?title=тени", headers=auth(user_token)).json()[0]["title"] == "Тени"
-    assert client.get("/books?genre=драма", headers=auth(user_token)).json()[0]["genre"] == "драма"
+    resp = client.get("/books?title=тени", headers=auth(user_token))
+    assert resp.json()["items"][0]["title"] == "Тени"
+
+    resp = client.get("/books?genre=драма", headers=auth(user_token))
+    assert resp.json()["items"][0]["genre"] == "драма"
+
 
 
 def test_patch_partial(client, user_token, book):

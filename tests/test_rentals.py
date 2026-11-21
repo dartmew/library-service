@@ -53,7 +53,7 @@ def test_active_filter(client, user_token):
     client.post(f"/rentals/{r2.json()['id']}/return", headers=auth(user_token))
 
     resp = client.get("/rentals/my?active=true", headers=auth(user_token))
-    assert [r["book_id"] for r in resp.json()] == [bk1["id"]]
+    assert [r["book_id"] for r in resp.json()["items"]] == [bk1["id"]]
 
 
 def test_overdue_filter(client, db_session, user_token, admin_token):
@@ -69,7 +69,7 @@ def test_overdue_filter(client, db_session, user_token, admin_token):
     db_session.commit()
 
     overdue = client.get("/rentals?overdue=true", headers=auth(admin_token))
-    assert [x["id"] for x in overdue.json()] == [rental_id]
+    assert [x["id"] for x in overdue.json()["items"]] == [rental_id]
 
     client.post(f"/rentals/{rental_id}/return", headers=auth(admin_token))
-    assert client.get("/rentals?overdue=true", headers=auth(admin_token)).json() == []
+    assert client.get("/rentals?overdue=true", headers=auth(admin_token)).json()["items"] == []
