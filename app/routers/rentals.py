@@ -29,7 +29,7 @@ def _active_count(db: Session, book_id: int) -> int:
 
 @router.post("/book/{book_id}", response_model=RentalOut, status_code=201)
 def rent_book(book_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    book = db.get(Book, book_id)
+    book = db.get(Book, book_id, with_for_update=True)
     if book is None:
         raise HTTPException(status_code=404, detail="Книга не найдена")
 
@@ -47,9 +47,10 @@ def rent_book(book_id: int, db: Session = Depends(get_db), user: User = Depends(
         raise HTTPException(status_code=409, detail="Книга уже у вас на руках")
 
     rental = Rental(
-        book_id=book_id, 
+        book_id=book_id,
         user_id=user.id,
-        due_at=datetime.now(timezone.utc) + timedelta(days=RENTAL_DAYS))
+        due_at=datetime.now(timezone.utc) + timedelta(days=RENTAL_DAYS),
+    )
     db.add(rental)
     db.commit()
     db.refresh(rental)
