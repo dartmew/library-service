@@ -71,11 +71,11 @@ pip install -r requirements.txt
 Создайте файл `.env` в корневой папке проекта и заполните его:
 
 ```env
-DATABASE_URL=postgresql+psycopg://ваш_пользователь:ваш_пароль@localhost:5432/library_db
+DATABASE_URL=postgresql+psycopg://ваш_пользователь:ваш_пароль@localhost:5432/library
 SECRET_KEY=ваш_супер_секретный_ключ_для_jwt
 ```
 4. Применение миграций
-Убедитесь, что база данных `library_db` создана в PostgreSQL.
+Убедитесь, что база данных `library` создана в PostgreSQL.
 
 ```bash
 alembic upgrade head
